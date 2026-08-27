@@ -1,0 +1,10 @@
+{
+  "id": "mcp-server",
+  "name": "MCP Server",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Exposes this vault as a local MCP (Model Context Protocol) server over Streamable HTTP, so Claude Desktop and other MCP clients can read/search/write notes.",
+  "author": "Bartosz",
+  "authorUrl": "",
+  "isDesktopOnly": true
+}
