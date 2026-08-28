@@ -20,7 +20,6 @@ const DEFAULT_SETTINGS: McpPluginSettings = {
 export default class McpServerPlugin extends Plugin {
 	settings: McpPluginSettings;
 	private httpServer: http.Server | null = null;
-	private mcpServer: McpServer | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -91,7 +90,7 @@ export default class McpServerPlugin extends Plugin {
 			"write_note",
 			{
 				title: "Write note",
-				description: "Create or overwrite a note at the given path with the given content.",
+				description: "Create or overwrite a note at the given path with the given content. Creates any missing parent folders.",
 				inputSchema: { path: z.string(), content: z.string() },
 			},
 			async ({ path, content }) => {
@@ -99,9 +98,30 @@ export default class McpServerPlugin extends Plugin {
 				if (existing instanceof TFile) {
 					await app.vault.modify(existing, content);
 				} else {
+					const folder = path.substring(0, path.lastIndexOf("/"));
+					if (folder && !app.vault.getAbstractFileByPath(folder)) {
+						await app.vault.createFolder(folder);
+					}
 					await app.vault.create(path, content);
 				}
 				return { content: [{ type: "text", text: `Wrote ${path}` }] };
+			}
+		);
+
+		server.registerTool(
+			"create_folder",
+			{
+				title: "Create folder",
+				description: "Create a folder at the given vault-relative path, including any missing parent folders.",
+				inputSchema: { path: z.string() },
+			},
+			async ({ path }) => {
+				const existing = app.vault.getAbstractFileByPath(path);
+				if (existing) {
+					return { content: [{ type: "text", text: `Already exists: ${path}` }], isError: true };
+				}
+				await app.vault.createFolder(path);
+				return { content: [{ type: "text", text: `Created folder ${path}` }] };
 			}
 		);
 
@@ -131,7 +151,6 @@ export default class McpServerPlugin extends Plugin {
 	}
 
 	private startServer() {
-		this.mcpServer = this.buildMcpServer();
 		const token = this.settings.token;
 
 		this.httpServer = http.createServer(async (req, res) => {
@@ -149,21 +168,28 @@ export default class McpServerPlugin extends Plugin {
 				}
 			}
 
-			// Stateless mode: a fresh transport per request. Simplest option for
-			// a plugin context — no session map to manage across reloads.
+			// Stateless mode: a fresh server + transport per request. Sharing a
+			// single McpServer across requests lets a new connect() steal the
+			// shared transport reference out from under a still in-flight
+			// request, so each request gets its own isolated pair (matching the
+			// MCP SDK's own stateless example).
+			const server = this.buildMcpServer();
 			const transport = new StreamableHTTPServerTransport({
 				sessionIdGenerator: undefined,
 				enableJsonResponse: true,
 			});
 
-			res.on("close", () => transport.close());
+			res.on("close", () => {
+				transport.close();
+				server.close();
+			});
 
 			let body = "";
 			req.on("data", chunk => (body += chunk));
 			req.on("end", async () => {
 				try {
 					const parsed = body ? JSON.parse(body) : undefined;
-					await this.mcpServer!.connect(transport);
+					await server.connect(transport);
 					await transport.handleRequest(req, res, parsed);
 				} catch (err) {
 					console.error("MCP request error", err);
@@ -184,7 +210,6 @@ export default class McpServerPlugin extends Plugin {
 	private stopServer() {
 		this.httpServer?.close();
 		this.httpServer = null;
-		this.mcpServer = null;
 	}
 }
 

@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build
+*.js.map
+
+# Obsidian
+data.json
+
+# Exclude sourcemaps
+*.map
+
+# obsidian
+.obsidian/
+
+# npm
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
