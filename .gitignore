@@ -3,6 +3,7 @@ node_modules/
 
 # Build
 *.js.map
+standalone-mcp-server/dist/
 
 # Obsidian
 data.json
