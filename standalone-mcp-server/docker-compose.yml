@@ -1,0 +1,25 @@
+services:
+  obsidian-mcp-standalone:
+    build: .
+    container_name: obsidian-mcp-standalone
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    environment:
+      # REPO_URL/GIT_TOKEN are optional here — leave them unset and configure
+      # the connection through the web UI at http://<host>:8123/ instead.
+      REPO_URL: ${REPO_URL:-}
+      REPO_BRANCH: ${REPO_BRANCH:-main}
+      GIT_USERNAME: ${GIT_USERNAME:-x-access-token}
+      GIT_TOKEN: ${GIT_TOKEN:-}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-Obsidian MCP Server}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-obsidian-mcp-server@localhost}
+      MCP_BEARER_TOKEN: ${MCP_BEARER_TOKEN}
+      PORT: 8123
+      DATA_DIR: /data/vault
+      CONFIG_DIR: /data/config
+    volumes:
+      - vault-data:/data
+
+volumes:
+  vault-data:
