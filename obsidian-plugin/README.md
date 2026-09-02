@@ -1,8 +1,9 @@
 # obsidian-mcp-server (plugin)
 
 A minimal Obsidian plugin that runs an MCP (Model Context Protocol) server
-inside Obsidian itself, using the Streamable HTTP transport. It exposes four
-tools: `list_notes`, `read_note`, `write_note`, `search_notes`.
+inside Obsidian itself, using the Streamable HTTP transport. It exposes six
+tools: `list_notes`, `read_note`, `write_note`, `create_folder`,
+`delete_note`, `search_notes`.
 
 Runs entirely on your machine (binds to 127.0.0.1) — no data leaves your PC
 unless you point a remote client at it, which you shouldn't.
@@ -68,7 +69,7 @@ header:
 ```
 
 Quit Claude Desktop from the tray icon and reopen it. A tool icon should
-appear showing the four Obsidian tools.
+appear showing the Obsidian tools.
 
 ## Debugging
 
