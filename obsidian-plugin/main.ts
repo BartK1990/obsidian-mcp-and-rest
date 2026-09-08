@@ -159,6 +159,23 @@ export default class McpServerPlugin extends Plugin {
 		);
 
 		server.registerTool(
+			"delete_note",
+			{
+				title: "Delete note",
+				description: "Delete a note or folder at the given vault-relative path.",
+				inputSchema: { path: z.string() },
+			},
+			async ({ path }) => {
+				const file = app.vault.getAbstractFileByPath(path);
+				if (!file) {
+					return { content: [{ type: "text", text: `Not found: ${path}` }], isError: true };
+				}
+				await app.vault.delete(file, true);
+				return { content: [{ type: "text", text: `Deleted ${path}` }] };
+			}
+		);
+
+		server.registerTool(
 			"search_notes",
 			{
 				title: "Search notes",
