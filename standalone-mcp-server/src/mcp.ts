@@ -37,6 +37,26 @@ export function buildMcpServer(vm: VaultManager): McpServer {
 	);
 
 	server.registerTool(
+		"list_folders",
+		{
+			title: "List folders",
+			description: "List folder paths in the vault, optionally under a folder. Includes empty folders, which list_notes never shows.",
+			inputSchema: { folder: z.string().optional() },
+		},
+		async ({ folder }) => guarded(async () => text(await vm.requireVault().listFolders(folder)))
+	);
+
+	server.registerTool(
+		"list_all",
+		{
+			title: "List all",
+			description: "List every note and folder path in the vault, optionally under a folder, tagged with their type.",
+			inputSchema: { folder: z.string().optional() },
+		},
+		async ({ folder }) => guarded(async () => text(await vm.requireVault().listEntries(folder)))
+	);
+
+	server.registerTool(
 		"read_note",
 		{
 			title: "Read note",

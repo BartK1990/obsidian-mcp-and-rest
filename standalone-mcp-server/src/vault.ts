@@ -25,22 +25,33 @@ export class Vault {
 		return path.relative(this.root, fullPath).split(path.sep).join("/");
 	}
 
-	async listMarkdownFiles(folder?: string): Promise<string[]> {
-		const results: string[] = [];
+	/** Walk the vault, collecting both markdown files and folders (including empty ones). */
+	async listEntries(folder?: string): Promise<{ path: string; type: "file" | "folder" }[]> {
+		const results: { path: string; type: "file" | "folder" }[] = [];
 		const walk = async (dir: string) => {
 			const entries = await fs.readdir(dir, { withFileTypes: true });
 			for (const entry of entries) {
 				if (IGNORED_ENTRIES.has(entry.name)) continue;
 				const full = path.join(dir, entry.name);
 				if (entry.isDirectory()) {
+					results.push({ path: this.toRelative(full), type: "folder" });
 					await walk(full);
 				} else if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) {
-					results.push(this.toRelative(full));
+					results.push({ path: this.toRelative(full), type: "file" });
 				}
 			}
 		};
 		await walk(this.root);
-		return folder ? results.filter((p) => p.startsWith(folder)) : results;
+		return folder ? results.filter((e) => e.path.startsWith(folder)) : results;
+	}
+
+	async listMarkdownFiles(folder?: string): Promise<string[]> {
+		return (await this.listEntries(folder)).filter((e) => e.type === "file").map((e) => e.path);
+	}
+
+	/** List folder paths in the vault, including empty ones — folders never show up in listMarkdownFiles. */
+	async listFolders(folder?: string): Promise<string[]> {
+		return (await this.listEntries(folder)).filter((e) => e.type === "folder").map((e) => e.path);
 	}
 
 	async read(relPath: string): Promise<string> {

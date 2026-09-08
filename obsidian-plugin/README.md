@@ -1,8 +1,9 @@
 # obsidian-mcp-server (plugin)
 
 A minimal Obsidian plugin that runs an MCP (Model Context Protocol) server
-inside Obsidian itself, using the Streamable HTTP transport. It exposes four
-tools: `list_notes`, `read_note`, `write_note`, `search_notes`.
+inside Obsidian itself, using the Streamable HTTP transport. It exposes these
+tools: `list_notes`, `list_folders`, `list_all`, `read_note`, `write_note`,
+`create_folder`, `search_notes`.
 
 Runs entirely on your machine (binds to 127.0.0.1) — no data leaves your PC
 unless you point a remote client at it, which you shouldn't.

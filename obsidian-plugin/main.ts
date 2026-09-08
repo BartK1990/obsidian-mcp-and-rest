@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, TFile, Notice } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting, TFile, TFolder, Notice } from "obsidian";
 import * as http from "http";
 import { randomUUID } from "crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -66,6 +66,39 @@ export default class McpServerPlugin extends Plugin {
 					.filter(f => !folder || f.path.startsWith(folder))
 					.map(f => f.path);
 				return { content: [{ type: "text", text: JSON.stringify(files, null, 2) }] };
+			}
+		);
+
+		server.registerTool(
+			"list_folders",
+			{
+				title: "List folders",
+				description: "List folder paths in the vault, optionally under a folder. Includes empty folders, which list_notes never shows.",
+				inputSchema: { folder: z.string().optional() },
+			},
+			async ({ folder }) => {
+				const folders = app.vault.getAllLoadedFiles()
+					.filter((f): f is TFolder => f instanceof TFolder && f.path !== "/")
+					.map(f => f.path)
+					.filter(p => !folder || p.startsWith(folder));
+				return { content: [{ type: "text", text: JSON.stringify(folders, null, 2) }] };
+			}
+		);
+
+		server.registerTool(
+			"list_all",
+			{
+				title: "List all",
+				description: "List every note and folder path in the vault, optionally under a folder, tagged with their type.",
+				inputSchema: { folder: z.string().optional() },
+			},
+			async ({ folder }) => {
+				const entries = app.vault.getAllLoadedFiles()
+					.filter((f): f is TFolder | TFile =>
+						f instanceof TFolder ? f.path !== "/" : f instanceof TFile && f.extension === "md")
+					.map(f => ({ path: f.path, type: (f instanceof TFolder ? "folder" : "file") as "folder" | "file" }))
+					.filter(e => !folder || e.path.startsWith(folder));
+				return { content: [{ type: "text", text: JSON.stringify(entries, null, 2) }] };
 			}
 		);
 

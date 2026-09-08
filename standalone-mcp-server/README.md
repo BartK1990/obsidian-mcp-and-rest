@@ -55,6 +55,8 @@ container with no `REPO_URL` at all and wire it up from the browser.
 | Tool | Description |
 | --- | --- |
 | `list_notes` | List markdown paths, optionally under a folder |
+| `list_folders` | List folder paths, optionally under a folder (includes empty folders) |
+| `list_all` | List every note and folder path, tagged with their type |
 | `read_note` | Read a note's contents |
 | `write_note` | Create/overwrite a note (creates parent folders) |
 | `create_folder` | Create a folder |
